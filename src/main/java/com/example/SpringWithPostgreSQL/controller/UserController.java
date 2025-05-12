@@ -25,12 +25,10 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDto userDto){
-        boolean isAuthenticated = userService.authenticate(userDto.getUsername(),userDto.getPassword());
-        if (isAuthenticated){
-            return ResponseEntity.ok("Login successful");
-        } else {
-            return ResponseEntity.status(401).body("Invalid credentials");
-        }
+    public ResponseEntity<String> login(@RequestBody UserDto userDto) {
+        userService.verify(userDto);
+        System.out.println(userService.verify(userDto));
+        return ResponseEntity.ok("User login successfully");
+
     }
 }

@@ -4,9 +4,13 @@ import com.example.SpringWithPostgreSQL.dto.UserDto;
 import com.example.SpringWithPostgreSQL.entity.User;
 import com.example.SpringWithPostgreSQL.mapper.UserMapper;
 import com.example.SpringWithPostgreSQL.repository.UserRepository;
+import com.example.SpringWithPostgreSQL.service.JWTService;
 import com.example.SpringWithPostgreSQL.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +18,10 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final JWTService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     @Override
     public UserDto register(UserDto userDto) {
@@ -29,10 +32,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean authenticate(String username, String rawPassword) {
-        return userRepository.findByUsername(username)
-                .map(user -> passwordEncoder.matches(rawPassword, user.getPassword()))
-                .orElse(false);
-
+    public String verify(UserDto userDto) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userDto.getUsername(), userDto.getPassword()));
+        if (authentication.isAuthenticated()){
+            return jwtService.generateToken(userDto.getUsername());
+        }
+        return "Fail";
     }
 }
